@@ -4,7 +4,7 @@ import apiClient from '../utils/axiosConfig';
 export const login = async (credentials) => {
   try {
     const response = await apiClient.post('/api/auth/login', credentials);
-    if (response.data.token) {
+    if (response.data && response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
     return response;
@@ -16,7 +16,7 @@ export const login = async (credentials) => {
 export const register = async (data) => {
   try {
     const response = await apiClient.post('/api/auth/register', data);
-    if (response.data.token) {
+    if (response.data && response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
     return response;
