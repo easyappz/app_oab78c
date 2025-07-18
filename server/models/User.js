@@ -1,46 +1,56 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
   email: {
     type: String,
     required: true,
     unique: true,
+    trim: true
   },
   password: {
     type: String,
-    required: true,
-  },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-    required: true,
-  },
-  dateOfBirth: {
-    type: Date,
-  },
-  profilePicture: {
-    type: String,
-    default: '',
+    required: true
   },
   bio: {
     type: String,
-    default: '',
+    default: ''
   },
-  friends: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+  profilePicture: {
+    type: String,
+    default: ''
+  },
+  posts: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Post'
+  }],
+  followers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  following: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }],
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
   updatedAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
+});
+
+// Update the updatedAt field on save
+UserSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('User', UserSchema);
