@@ -1,31 +1,36 @@
 const express = require('express');
-
-/**
- * Пример создания модели в базу данных
- */
-// const mongoose = require('mongoose');
-// const db = require('/db');
-
-// const MongoTestSchema = new mongoose.Schema({
-//   value: { type: String, required: true },
-// });
-
-// const MongoModelTest = db.mongoDb.model('Test', MongoTestSchema);
-
-// const newTest = new MongoModelTest({
-//   value: 'test-value',
-// });
-
-// newTest.save();
+const authController = require('./controllers/authController');
+const userController = require('./controllers/userController');
+const postController = require('./controllers/postController');
+const messageController = require('./controllers/messageController');
+const authMiddleware = require('./middleware/authMiddleware');
 
 const router = express.Router();
 
-// GET /api/hello
+// Auth Routes
+router.post('/auth/register', authController.register);
+router.post('/auth/login', authController.login);
+
+// User Routes
+router.get('/user/profile', authMiddleware, userController.getProfile);
+router.put('/user/profile', authMiddleware, userController.updateProfile);
+router.get('/user/search', authMiddleware, userController.searchUsers);
+router.post('/user/friend', authMiddleware, userController.addFriend);
+
+// Post Routes
+router.post('/posts', authMiddleware, postController.createPost);
+router.get('/posts', authMiddleware, postController.getPosts);
+router.post('/posts/:postId/like', authMiddleware, postController.likePost);
+
+// Message Routes
+router.post('/messages', authMiddleware, messageController.sendMessage);
+router.get('/messages/:otherUserId', authMiddleware, messageController.getMessages);
+
+// Health Check Routes
 router.get('/hello', (req, res) => {
   res.json({ message: 'Hello from API!' });
 });
 
-// GET /api/status
 router.get('/status', (req, res) => {
   res.json({ 
     status: 'ok',
@@ -34,4 +39,3 @@ router.get('/status', (req, res) => {
 });
 
 module.exports = router;
-
