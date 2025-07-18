@@ -1,11 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useNotification } from '../contexts/NotificationContext';
+import { getProfile } from '../services/api';
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
-  const token = localStorage.getItem('token');
+  const { showNotification } = useNotification();
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
-  if (!token) {
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        await getProfile();
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
+        showNotification('Сессия истекла. Пожалуйста, войдите снова.', 'error');
+      }
+    };
+
+    checkTokenValidity();
+  }, [showNotification]);
+
+  if (isAuthenticated === null) {
+    return <div>Проверка авторизации...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
