@@ -1,46 +1,30 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
   email: {
     type: String,
     required: true,
     unique: true,
+    trim: true
   },
   password: {
     type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    default: 'User',
-  },
-  avatar: {
-    type: String,
-    default: '',
-  },
-  description: {
-    type: String,
-    default: '',
+    required: true
   },
   friends: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User'
   }],
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-userSchema.pre('save', function(next) {
-  if (this.isModified()) {
-    this.updatedAt = Date.now();
+    default: Date.now
   }
-  next();
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', UserSchema);

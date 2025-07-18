@@ -21,6 +21,9 @@ router.post('/user/friend', authMiddleware, userController.addFriend);
 // Post Routes
 router.post('/posts', authMiddleware, postController.createPost);
 router.get('/posts', authMiddleware, postController.getPosts);
+router.get('/posts/:postId', authMiddleware, postController.getPostById);
+router.put('/posts/:postId', authMiddleware, postController.updatePost);
+router.delete('/posts/:postId', authMiddleware, postController.deletePost);
 router.post('/posts/:postId/like', authMiddleware, postController.likePost);
 
 // Message Routes
