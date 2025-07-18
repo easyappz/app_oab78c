@@ -1,14 +1,14 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 
 const MessagesPage = () => {
   return (
-    <Box sx={{ mt: 4 }}>
+    <Box sx={{ mt: 3 }}>
       <Typography variant="h5" gutterBottom>
         Сообщения
       </Typography>
       <Typography variant="body1" color="text.secondary">
-        Ваши переписки с друзьями появятся здесь.
+        Здесь будут отображаться ваши диалоги.
       </Typography>
     </Box>
   );

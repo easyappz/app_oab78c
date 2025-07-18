@@ -1,94 +1,68 @@
-const Dialog = require('../models/dialogModel');
-const Message = require('../models/messageModel');
+const Dialog = require('../models/Dialog');
+const Message = require('../models/Message');
 
-// Create a new dialog between two users
-const createDialog = async (req, res) => {
+// Create a new dialog
+exports.createDialog = async (req, res) => {
   try {
-    const { participantId } = req.body;
-    const userId = req.user.id;
+    const { participant } = req.body;
+    const creator = req.user.id;
 
-    if (!participantId) {
-      return res.status(400).json({ message: 'Participant ID is required' });
+    if (!participant) {
+      return res.status(400).json({ message: 'Участник диалога обязателен' });
     }
 
-    if (participantId === userId) {
-      return res.status(400).json({ message: 'Cannot create dialog with yourself' });
-    }
-
-    // Check if dialog already exists
     const existingDialog = await Dialog.findOne({
-      participants: { $all: [userId, participantId] }
+      participants: { $all: [creator, participant] },
     });
 
     if (existingDialog) {
-      return res.status(200).json({ dialogId: existingDialog._id });
+      return res.status(200).json(existingDialog);
     }
 
-    // Create new dialog
-    const dialog = new Dialog({
-      participants: [userId, participantId]
+    const newDialog = new Dialog({
+      participants: [creator, participant],
     });
 
-    await dialog.save();
-    res.status(201).json({ dialogId: dialog._id });
+    const savedDialog = await newDialog.save();
+    res.status(201).json(savedDialog);
   } catch (error) {
     console.error('Error creating dialog:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Ошибка при создании диалога' });
   }
 };
 
-// Get all dialogs for the authenticated user
-const getDialogs = async (req, res) => {
+// Get user dialogs
+exports.getDialogs = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const dialogs = await Dialog.find({ participants: userId })
-      .populate('participants', 'username email')
-      .select('participants createdAt updatedAt');
-
+    const dialogs = await Dialog.find({ participants: req.user.id })
+      .populate('participants', 'name email');
     res.status(200).json(dialogs);
   } catch (error) {
     console.error('Error fetching dialogs:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Ошибка при получении диалогов' });
   }
 };
 
-// Get messages in a specific dialog
-const getMessagesByDialog = async (req, res) => {
+// Get messages by dialog ID
+exports.getMessagesByDialog = async (req, res) => {
   try {
-    const { dialogId } = req.params;
-    const userId = req.user.id;
-
-    // Check if user is part of the dialog
-    const dialog = await Dialog.findOne({
-      _id: dialogId,
-      participants: userId
-    });
+    const dialogId = req.params.dialogId;
+    const dialog = await Dialog.findById(dialogId);
 
     if (!dialog) {
-      return res.status(403).json({ message: 'Access denied to this dialog' });
+      return res.status(404).json({ message: 'Диалог не найден' });
     }
 
-    const messages = await Message.find({ dialogId })
-      .populate('sender', 'username email')
+    if (!dialog.participants.includes(req.user.id)) {
+      return res.status(403).json({ message: 'Нет доступа к диалогу' });
+    }
+
+    const messages = await Message.find({ dialog: dialogId })
       .sort({ createdAt: 1 })
-      .limit(50);
-
-    // Mark messages as read (except those sent by the current user)
-    await Message.updateMany(
-      { dialogId, sender: { $ne: userId }, isRead: false },
-      { $set: { isRead: true } }
-    );
-
+      .populate('sender', 'name email');
     res.status(200).json(messages);
   } catch (error) {
     console.error('Error fetching messages:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Ошибка при получении сообщений' });
   }
-};
-
-module.exports = {
-  createDialog,
-  getDialogs,
-  getMessagesByDialog
 };

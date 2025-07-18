@@ -5,6 +5,7 @@ const postController = require('./controllers/postController');
 const messageController = require('./controllers/messageController');
 const dialogController = require('./controllers/dialogController');
 const authMiddleware = require('./middleware/authMiddleware');
+const upload = require('./middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -20,10 +21,10 @@ router.get('/user/search', authMiddleware, userController.searchUsers);
 router.post('/user/friend', authMiddleware, userController.addFriend);
 
 // Post Routes
-router.post('/posts', authMiddleware, postController.createPost);
+router.post('/posts', authMiddleware, upload.single('image'), postController.createPost);
 router.get('/posts', authMiddleware, postController.getPosts);
 router.get('/posts/:postId', authMiddleware, postController.getPostById);
-router.put('/posts/:postId', authMiddleware, postController.updatePost);
+router.put('/posts/:postId', authMiddleware, upload.single('image'), postController.updatePost);
 router.delete('/posts/:postId', authMiddleware, postController.deletePost);
 router.post('/posts/:postId/like', authMiddleware, postController.likePost);
 

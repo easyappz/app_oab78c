@@ -5,68 +5,71 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    res.json(user);
+    res.status(200).json(user);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Ошибка при получении профиля' });
   }
 };
 
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: req.body },
-      { new: true, select: '-password' }
-    );
+    const { name, email } = req.body;
+    const user = await User.findById(req.user.id);
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    res.json(user);
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    const updatedUser = await user.save();
+    res.status(200).json(updatedUser);
   } catch (error) {
-    console.error('Error updating user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Ошибка при обновлении профиля' });
   }
 };
 
 // Delete user profile
 exports.deleteProfile = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.user.id);
+    const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    res.json({ message: 'User deleted successfully' });
+
+    await user.remove();
+    res.status(200).json({ message: 'Профиль удален' });
   } catch (error) {
-    console.error('Error deleting user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error deleting profile:', error);
+    res.status(500).json({ message: 'Ошибка при удалении профиля' });
   }
 };
 
-// Search users by name or other profile data
+// Search users
 exports.searchUsers = async (req, res) => {
   try {
     const { query } = req.query;
     if (!query) {
-      return res.status(400).json({ message: 'Query parameter is required' });
+      return res.status(400).json({ message: 'Введите поисковый запрос' });
     }
 
-    // Search for users by name or email (case-insensitive)
     const users = await User.find({
       $or: [
-        { firstName: { $regex: query, $options: 'i' } },
-        { lastName: { $regex: query, $options: 'i' } },
+        { name: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } },
       ],
-    }).select('firstName lastName avatar');
+    }).select('name email');
 
-    res.json(users);
+    res.status(200).json(users);
   } catch (error) {
     console.error('Error searching users:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Ошибка при поиске пользователей' });
   }
 };
 
@@ -75,19 +78,22 @@ exports.addFriend = async (req, res) => {
   try {
     const { friendId } = req.body;
     const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    const friend = await User.findById(friendId);
+
+    if (!friend) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
     if (user.friends.includes(friendId)) {
-      return res.status(400).json({ message: 'Friend already added' });
+      return res.status(400).json({ message: 'Пользователь уже в друзьях' });
     }
 
     user.friends.push(friendId);
     await user.save();
-    res.json({ message: 'Friend added successfully' });
+
+    res.status(200).json({ message: 'Друг добавлен' });
   } catch (error) {
     console.error('Error adding friend:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Ошибка при добавлении друга' });
   }
 };

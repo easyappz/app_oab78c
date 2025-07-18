@@ -1,11 +1,16 @@
 import axios from 'axios';
 
-// Настройка Axios для добавления токена в заголовки запросов
-const axiosInstance = axios.create({
+// Axios instance configuration
+
+const apiClient = axios.create({
   baseURL: '/',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-axiosInstance.interceptors.request.use(
+// Request interceptor to add token if available
+apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -18,4 +23,16 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-export default axiosInstance;
+// Response interceptor for handling errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;

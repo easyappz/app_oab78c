@@ -6,40 +6,28 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '70vh',
-        textAlign: 'center',
-      }}
-    >
-      <Typography variant="h3" gutterBottom>
-        Добро пожаловать в СоцСеть!
+    <Box sx={{ textAlign: 'center', mt: 5 }}>
+      <Typography variant="h4" gutterBottom>
+        Добро пожаловать в VK Clone
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '600px' }}>
-        Общайтесь с друзьями, делитесь моментами своей жизни и находите новых знакомых.
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        Социальная сеть для общения и обмена новостями.
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={() => navigate('/login')}
-        >
-          Войти
-        </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          size="large"
-          onClick={() => navigate('/register')}
-        >
-          Зарегистрироваться
-        </Button>
-      </Box>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => navigate('/feed')}
+        sx={{ mr: 2 }}
+      >
+        Перейти к ленте
+      </Button>
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={() => navigate('/login')}
+      >
+        Войти
+      </Button>
     </Box>
   );
 };

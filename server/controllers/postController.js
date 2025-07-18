@@ -1,163 +1,126 @@
 const Post = require('../models/Post');
-const User = require('../models/User');
 
 // Create a new post
 exports.createPost = async (req, res) => {
   try {
     const { content } = req.body;
+    const image = req.file ? req.file.path : null;
     const author = req.user.id;
 
-    if (!content) {
-      return res.status(400).json({ message: 'Content is required' });
+    if (!content && !image) {
+      return res.status(400).json({ message: 'Пост не может быть пустым' });
     }
 
     const newPost = new Post({
       content,
-      author
+      image,
+      author,
     });
 
     const savedPost = await newPost.save();
-    await savedPost.populate('author', 'username email');
-
+    await savedPost.populate('author', 'name email');
     res.status(201).json(savedPost);
   } catch (error) {
     console.error('Error creating post:', error);
-    res.status(500).json({ message: 'Error creating post' });
+    res.status(500).json({ message: 'Ошибка при создании поста' });
   }
 };
 
-// Get all posts (feed for friends or public)
+// Get all posts
 exports.getPosts = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { filter } = req.query; // 'friends' or 'all'
-
-    let query = {};
-    if (filter === 'friends') {
-      const user = await User.findById(userId).select('friends');
-      const friendIds = user.friends.map(friend => friend._id);
-      friendIds.push(userId); // Include user's own posts
-      query = { author: { $in: friendIds } };
-    }
-
-    const posts = await Post.find(query)
+    const posts = await Post.find()
       .sort({ createdAt: -1 })
-      .populate('author', 'username email')
-      .populate('likes', 'username');
-
-    res.json(posts);
+      .populate('author', 'name email');
+    res.status(200).json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
-    res.status(500).json({ message: 'Error fetching posts' });
+    res.status(500).json({ message: 'Ошибка при получении постов' });
   }
 };
 
-// Get a specific post by ID
+// Get a single post by ID
 exports.getPostById = async (req, res) => {
   try {
-    const { postId } = req.params;
-
-    const post = await Post.findById(postId)
-      .populate('author', 'username email')
-      .populate('likes', 'username');
-
+    const post = await Post.findById(req.params.postId)
+      .populate('author', 'name email');
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Пост не найден' });
     }
-
-    res.json(post);
+    res.status(200).json(post);
   } catch (error) {
     console.error('Error fetching post:', error);
-    res.status(500).json({ message: 'Error fetching post' });
+    res.status(500).json({ message: 'Ошибка при получении поста' });
   }
 };
 
 // Update a post
 exports.updatePost = async (req, res) => {
   try {
-    const { postId } = req.params;
     const { content } = req.body;
-    const userId = req.user.id;
+    const image = req.file ? req.file.path : null;
 
-    if (!content) {
-      return res.status(400).json({ message: 'Content is required' });
-    }
-
-    const post = await Post.findById(postId);
-
+    const post = await Post.findById(req.params.postId);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Пост не найден' });
     }
 
-    if (post.author.toString() !== userId) {
-      return res.status(403).json({ message: 'Unauthorized to update this post' });
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Нет прав для редактирования поста' });
     }
 
-    post.content = content;
+    post.content = content || post.content;
+    if (image) post.image = image;
     const updatedPost = await post.save();
-    await updatedPost.populate('author', 'username email');
-
-    res.json(updatedPost);
+    await updatedPost.populate('author', 'name email');
+    res.status(200).json(updatedPost);
   } catch (error) {
     console.error('Error updating post:', error);
-    res.status(500).json({ message: 'Error updating post' });
+    res.status(500).json({ message: 'Ошибка при обновлении поста' });
   }
 };
 
 // Delete a post
 exports.deletePost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const userId = req.user.id;
-
-    const post = await Post.findById(postId);
-
+    const post = await Post.findById(req.params.postId);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Пост не найден' });
     }
 
-    if (post.author.toString() !== userId) {
-      return res.status(403).json({ message: 'Unauthorized to delete this post' });
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Нет прав для удаления поста' });
     }
 
-    await Post.deleteOne({ _id: postId });
-
-    res.json({ message: 'Post deleted successfully' });
+    await post.remove();
+    res.status(200).json({ message: 'Пост удален' });
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.status(500).json({ message: 'Error deleting post' });
+    res.status(500).json({ message: 'Ошибка при удалении поста' });
   }
 };
 
-// Like or unlike a post
+// Like a post
 exports.likePost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const userId = req.user.id;
-
-    const post = await Post.findById(postId);
-
+    const post = await Post.findById(req.params.postId);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Пост не найден' });
     }
 
+    const userId = req.user.id;
     const likeIndex = post.likes.indexOf(userId);
-    let message = '';
 
     if (likeIndex === -1) {
       post.likes.push(userId);
-      message = 'Post liked';
     } else {
       post.likes.splice(likeIndex, 1);
-      message = 'Post unliked';
     }
 
-    await post.save();
-    await post.populate('likes', 'username');
-
-    res.json({ message, likes: post.likes });
+    const updatedPost = await post.save();
+    res.status(200).json({ likes: updatedPost.likes });
   } catch (error) {
-    console.error('Error liking/unliking post:', error);
-    res.status(500).json({ message: 'Error liking/unliking post' });
+    console.error('Error liking post:', error);
+    res.status(500).json({ message: 'Ошибка при добавлении лайка' });
   }
 };
