@@ -1,11 +1,5 @@
-import axios from 'axios';
+import apiClient from '../utils/axiosConfig';
 
-const apiClient = axios.create({
-  baseURL: '/',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export const login = (credentials) => apiClient.post('/api/auth/login', credentials);
 export const register = (data) => apiClient.post('/api/auth/register', data);
