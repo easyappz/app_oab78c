@@ -13,23 +13,51 @@ import DialogsPage from './pages/DialogsPage';
 import DialogPage from './pages/DialogPage';
 import SearchPage from './pages/SearchPage';
 import UserProfilePage from './pages/UserProfilePage';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
   return (
     <NotificationProvider>
       <Router>
-        <NotificationHandler />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="feed" element={<FeedPage />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="dialogs" element={<DialogsPage />} />
-            <Route path="dialog/:id" element={<DialogPage />} />
-            <Route path="search" element={<SearchPage />} />
-            <Route path="user/:id" element={<UserProfilePage />} />
+            <Route path="profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="feed" element={
+              <ProtectedRoute>
+                <FeedPage />
+              </ProtectedRoute>
+            } />
+            <Route path="messages" element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="dialogs" element={
+              <ProtectedRoute>
+                <DialogsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="dialog/:id" element={
+              <ProtectedRoute>
+                <DialogPage />
+              </ProtectedRoute>
+            } />
+            <Route path="search" element={
+              <ProtectedRoute>
+                <SearchPage />
+              </ProtectedRoute>
+            } />
+            <Route path="user/:id" element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            } />
           </Route>
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
@@ -38,27 +66,5 @@ function App() {
     </NotificationProvider>
   );
 }
-
-function NotificationHandler() {
-  const { notification, closeNotification } = useNotification();
-  return (
-    <NotificationSnackbar
-      open={notification.open}
-      onClose={closeNotification}
-      message={notification.message}
-      severity={notification.severity}
-    />
-  );
-}
-
-function useNotification() {
-  const context = React.useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  return context;
-}
-
-const NotificationContext = React.createContext();
 
 export default App;

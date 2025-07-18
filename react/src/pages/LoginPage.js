@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box, Typography, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { login } from '../services/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -16,9 +18,10 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await login({ email, password });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        showNotification('Успешный вход в систему', 'success');
         navigate('/feed');
       }
     } catch (err) {

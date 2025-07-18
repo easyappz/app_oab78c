@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box, Typography, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { register } from '../services/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
@@ -9,6 +10,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
@@ -17,9 +19,10 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password });
+      const response = await register({ name, email, password });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        showNotification('Регистрация прошла успешно', 'success');
         navigate('/feed');
       }
     } catch (err) {
