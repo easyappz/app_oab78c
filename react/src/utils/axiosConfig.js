@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { create } from '@mui/material/styles/createTransitions';
 
 // Axios instance configuration
-
 const apiClient = axios.create({
   baseURL: '/',
   headers: {
@@ -29,6 +29,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
+      // Show a notification or toast (handled in components or a global error handler)
+      // For now, we just redirect
       window.location.href = '/login';
     }
     return Promise.reject(error);

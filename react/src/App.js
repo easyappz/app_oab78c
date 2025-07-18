@@ -1,68 +1,64 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { NotificationProvider } from './contexts/NotificationContext';
+import NotificationSnackbar from './components/NotificationSnackbar';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
-import ProfilePage from './pages/ProfilePage';
-import FeedPage from './pages/FeedPage';
-import SearchPage from './pages/SearchPage';
-import MessagesPage from './pages/MessagesPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import UserProfilePage from './pages/UserProfilePage';
+import ProfilePage from './pages/ProfilePage';
+import FeedPage from './pages/FeedPage';
+import MessagesPage from './pages/MessagesPage';
 import DialogsPage from './pages/DialogsPage';
 import DialogPage from './pages/DialogPage';
-import ErrorBoundary from './ErrorBoundary';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#4682B4',
-    },
-    secondary: {
-      main: '#EDEDED',
-    },
-    background: {
-      default: '#F5F5F5',
-    },
-  },
-  typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif',
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 4,
-        },
-      },
-    },
-  },
-});
+import SearchPage from './pages/SearchPage';
+import UserProfilePage from './pages/UserProfilePage';
+import './App.css';
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+    <NotificationProvider>
+      <Router>
+        <NotificationHandler />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="profile/:userId" element={<UserProfilePage />} />
             <Route path="feed" element={<FeedPage />} />
+            <Route path="messages" element={<MessagesPage />} />
+            <Route path="dialogs" element={<DialogsPage />} />
+            <Route path="dialog/:id" element={<DialogPage />} />
             <Route path="search" element={<SearchPage />} />
-            <Route path="messages" element={<DialogsPage />} />
-            <Route path="messages/:dialogId" element={<DialogPage />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
+            <Route path="user/:id" element={<UserProfilePage />} />
           </Route>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
         </Routes>
-      </ThemeProvider>
-    </ErrorBoundary>
+      </Router>
+    </NotificationProvider>
   );
 }
+
+function NotificationHandler() {
+  const { notification, closeNotification } = useNotification();
+  return (
+    <NotificationSnackbar
+      open={notification.open}
+      onClose={closeNotification}
+      message={notification.message}
+      severity={notification.severity}
+    />
+  );
+}
+
+function useNotification() {
+  const context = React.useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotification must be used within a NotificationProvider');
+  }
+  return context;
+}
+
+const NotificationContext = React.createContext();
 
 export default App;
