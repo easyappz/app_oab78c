@@ -33,6 +33,7 @@ router.post('/posts/:postId/like', authMiddleware, postController.likePost);
 router.post('/dialogs', authMiddleware, dialogController.createDialog);
 router.get('/dialogs', authMiddleware, dialogController.getDialogs);
 router.get('/dialogs/:dialogId/messages', authMiddleware, dialogController.getMessagesByDialog);
+router.delete('/dialogs/:dialogId', authMiddleware, dialogController.deleteDialog);
 
 // Message Routes
 router.post('/messages', authMiddleware, messageController.sendMessage);
