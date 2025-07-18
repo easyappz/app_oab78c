@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Alert } from '@mui/material';
+import { TextField, Button, Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 import { useNotification } from '../contexts/NotificationContext';
@@ -7,13 +7,12 @@ import { useNotification } from '../contexts/NotificationContext';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { showNotification } = useNotification();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Введите email и пароль');
+      showNotification('Введите email и пароль', 'error');
       return;
     }
 
@@ -25,7 +24,7 @@ const LoginPage = () => {
         navigate('/feed');
       }
     } catch (err) {
-      setError('Ошибка входа. Проверьте данные и попробуйте снова.');
+      showNotification('Ошибка входа. Проверьте данные и попробуйте снова.', 'error');
       console.error('Login error:', err);
     }
   };
@@ -35,11 +34,6 @@ const LoginPage = () => {
       <Typography variant="h5" gutterBottom align="center">
         Вход
       </Typography>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
       <TextField
         label="Email"
         value={email}

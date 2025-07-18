@@ -37,6 +37,14 @@ apiClient.interceptors.response.use(
         const event = new CustomEvent('sessionExpired', { detail: { message: 'Сессия истекла. Пожалуйста, войдите снова.' } });
         window.dispatchEvent(event);
       }
+    } else if (error.response && error.response.data && error.response.data.message) {
+      // Dispatch custom event for other API errors
+      const event = new CustomEvent('apiError', { detail: { message: error.response.data.message, status: error.response.status } });
+      window.dispatchEvent(event);
+    } else if (error.message) {
+      // Handle network or other errors
+      const event = new CustomEvent('apiError', { detail: { message: 'Произошла ошибка сети. Пожалуйста, попробуйте позже.', status: 0 } });
+      window.dispatchEvent(event);
     }
     return Promise.reject(error);
   }

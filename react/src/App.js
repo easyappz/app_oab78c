@@ -14,6 +14,7 @@ import MessagesPage from './pages/MessagesPage';
 import DialogPage from './pages/DialogPage';
 import DialogsPage from './pages/DialogsPage';
 import UserProfilePage from './pages/UserProfilePage';
+import { useNotification } from './contexts/NotificationContext';
 import './App.css';
 
 function App() {
@@ -24,9 +25,15 @@ function App() {
       showNotification(event.detail.message, 'error');
     };
 
+    const handleApiError = (event) => {
+      showNotification(event.detail.message, 'error');
+    };
+
     window.addEventListener('sessionExpired', handleSessionExpired);
+    window.addEventListener('apiError', handleApiError);
     return () => {
       window.removeEventListener('sessionExpired', handleSessionExpired);
+      window.removeEventListener('apiError', handleApiError);
     };
   }, [showNotification]);
 
@@ -107,19 +114,5 @@ function App() {
     </NotificationProvider>
   );
 }
-
-function useNotification() {
-  const context = React.useContext(NotificationContext);
-  if (!context) {
-    return {
-      notification: { open: false, message: '', severity: 'info' },
-      showNotification: () => {},
-      closeNotification: () => {}
-    };
-  }
-  return context;
-}
-
-const NotificationContext = React.createContext(null);
 
 export default App;
