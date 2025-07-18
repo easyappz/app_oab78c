@@ -1,10 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { connectToMongoDB } = require('./db');
 
 const apiRoutes = require('./apiRoutes');
 
 const app = express();
+
+// Connect to MongoDB
+connectToMongoDB();
 
 // Middleware
 app.use(cors());

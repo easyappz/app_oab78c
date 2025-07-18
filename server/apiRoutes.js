@@ -14,6 +14,7 @@ router.post('/auth/login', authController.login);
 // User Routes
 router.get('/user/profile', authMiddleware, userController.getProfile);
 router.put('/user/profile', authMiddleware, userController.updateProfile);
+router.delete('/user/profile', authMiddleware, userController.deleteProfile);
 router.get('/user/search', authMiddleware, userController.searchUsers);
 router.post('/user/friend', authMiddleware, userController.addFriend);
 

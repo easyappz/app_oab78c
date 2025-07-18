@@ -1,92 +1,73 @@
 const User = require('../models/User');
 
-const getProfile = async (req, res) => {
+// Get user profile
+exports.getProfile = async (req, res) => {
   try {
-    const userId = req.userId; // Extracted from JWT middleware
+    const userId = req.user.id;
     const user = await User.findById(userId).select('-password');
-
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
+    
     res.json(user);
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    res.status(500).json({ message: 'Failed to fetch profile' });
+    console.error('Error in getProfile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-const updateProfile = async (req, res) => {
+// Update user profile
+exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.userId;
-    const { firstName, lastName, dateOfBirth, bio, profilePicture } = req.body;
-
-    const updatedUser = await User.findByIdAndUpdate(
+    const userId = req.user.id;
+    const { name, avatar, description } = req.body;
+    
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (avatar) updateData.avatar = avatar;
+    if (description) updateData.description = description;
+    
+    const user = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, dateOfBirth, bio, profilePicture, updatedAt: Date.now() },
+      updateData,
       { new: true, select: '-password' }
     );
-
-    if (!updatedUser) {
+    
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    res.json(updatedUser);
+    
+    res.json(user);
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Failed to update profile' });
+    console.error('Error in updateProfile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-const searchUsers = async (req, res) => {
+// Delete user profile
+exports.deleteProfile = async (req, res) => {
   try {
-    const { query } = req.query;
-    if (!query) {
-      return res.status(400).json({ message: 'Query is required' });
+    const userId = req.user.id;
+    const user = await User.findByIdAndDelete(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    const users = await User.find({
-      $or: [
-        { firstName: { $regex: query, $options: 'i' } },
-        { lastName: { $regex: query, $options: 'i' } },
-      ],
-    }).select('-password');
-
-    res.json(users);
+    
+    res.json({ message: 'Profile deleted successfully' });
   } catch (error) {
-    console.error('Error searching users:', error);
-    res.status(500).json({ message: 'Failed to search users' });
+    console.error('Error in deleteProfile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-const addFriend = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { friendId } = req.body;
-
-    if (!friendId) {
-      return res.status(400).json({ message: 'Friend ID is required' });
-    }
-
-    const user = await User.findById(userId);
-    const friend = await User.findById(friendId);
-
-    if (!friend) {
-      return res.status(404).json({ message: 'Friend not found' });
-    }
-
-    if (user.friends.includes(friendId)) {
-      return res.status(400).json({ message: 'Already friends' });
-    }
-
-    user.friends.push(friendId);
-    await user.save();
-
-    res.json({ message: 'Friend added successfully' });
-  } catch (error) {
-    console.error('Error adding friend:', error);
-    res.status(500).json({ message: 'Failed to add friend' });
-  }
+// Search users (placeholder as it's already in the routes)
+exports.searchUsers = async (req, res) => {
+  res.status(501).json({ message: 'Not implemented yet' });
 };
 
-module.exports = { getProfile, updateProfile, searchUsers, addFriend };
+// Add friend (placeholder as it's already in the routes)
+exports.addFriend = async (req, res) => {
+  res.status(501).json({ message: 'Not implemented yet' });
+};
