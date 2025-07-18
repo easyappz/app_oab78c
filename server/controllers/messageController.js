@@ -1,53 +1,47 @@
-const Message = require('../models/Message');
+const Message = require('../models/messageModel');
+const Dialog = require('../models/dialogModel');
 
-// Send a message
-exports.sendMessage = async (req, res) => {
+// Send a message in a dialog
+const sendMessage = async (req, res) => {
   try {
-    const { recipientId, content } = req.body;
-    const senderId = req.user.id;
+    const { dialogId, content } = req.body;
+    const userId = req.user.id;
 
-    if (!recipientId || !content) {
-      return res.status(400).json({ message: 'Recipient ID and content are required' });
+    if (!dialogId || !content) {
+      return res.status(400).json({ message: 'Dialog ID and content are required' });
     }
 
-    const newMessage = new Message({
-      sender: senderId,
-      recipient: recipientId,
+    // Check if user is part of the dialog
+    const dialog = await Dialog.findOne({
+      _id: dialogId,
+      participants: userId
+    });
+
+    if (!dialog) {
+      return res.status(403).json({ message: 'Access denied to this dialog' });
+    }
+
+    const message = new Message({
+      dialogId,
+      sender: userId,
       content
     });
 
-    const savedMessage = await newMessage.save();
-    await savedMessage.populate('sender recipient', 'username email');
+    await message.save();
 
-    res.status(201).json(savedMessage);
+    // Update dialog's updatedAt timestamp
+    await Dialog.findByIdAndUpdate(dialogId, { updatedAt: Date.now() });
+
+    // Populate sender details for response
+    await message.populate('sender', 'username email');
+
+    res.status(201).json(message);
   } catch (error) {
     console.error('Error sending message:', error);
-    res.status(500).json({ message: 'Error sending message' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Get messages with another user
-exports.getMessages = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { otherUserId } = req.params;
-
-    if (!otherUserId) {
-      return res.status(400).json({ message: 'Other user ID is required' });
-    }
-
-    const messages = await Message.find({
-      $or: [
-        { sender: userId, recipient: otherUserId },
-        { sender: otherUserId, recipient: userId }
-      ]
-    })
-      .sort({ createdAt: 1 })
-      .populate('sender recipient', 'username email');
-
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ message: 'Error fetching messages' });
-  }
+module.exports = {
+  sendMessage
 };

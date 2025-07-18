@@ -3,6 +3,7 @@ const authController = require('./controllers/authController');
 const userController = require('./controllers/userController');
 const postController = require('./controllers/postController');
 const messageController = require('./controllers/messageController');
+const dialogController = require('./controllers/dialogController');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const router = express.Router();
@@ -26,9 +27,13 @@ router.put('/posts/:postId', authMiddleware, postController.updatePost);
 router.delete('/posts/:postId', authMiddleware, postController.deletePost);
 router.post('/posts/:postId/like', authMiddleware, postController.likePost);
 
+// Dialog Routes
+router.post('/dialogs', authMiddleware, dialogController.createDialog);
+router.get('/dialogs', authMiddleware, dialogController.getDialogs);
+router.get('/dialogs/:dialogId/messages', authMiddleware, dialogController.getMessagesByDialog);
+
 // Message Routes
 router.post('/messages', authMiddleware, messageController.sendMessage);
-router.get('/messages/:otherUserId', authMiddleware, messageController.getMessages);
 
 // Health Check Routes
 router.get('/hello', (req, res) => {
