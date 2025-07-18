@@ -15,6 +15,7 @@ router.post('/auth/login', authController.login);
 
 // User Routes
 router.get('/user/profile', authMiddleware, userController.getProfile);
+router.get('/user/profile/:userId', userController.getProfileById);
 router.put('/user/profile', authMiddleware, userController.updateProfile);
 router.delete('/user/profile', authMiddleware, userController.deleteProfile);
 router.get('/user/search', authMiddleware, userController.searchUsers);

@@ -10,6 +10,7 @@ import SearchPage from './pages/SearchPage';
 import MessagesPage from './pages/MessagesPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import UserProfilePage from './pages/UserProfilePage';
 import ErrorBoundary from './ErrorBoundary';
 
 const theme = createTheme({
@@ -48,7 +49,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="profile/:userId" element={<ProfilePage />} />
+            <Route path="profile/:userId" element={<UserProfilePage />} />
             <Route path="feed" element={<FeedPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="messages" element={<MessagesPage />} />

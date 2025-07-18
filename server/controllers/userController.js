@@ -1,99 +1,99 @@
 const User = require('../models/User');
 
-// Get user profile
+// Get user profile by ID
+exports.getProfileById = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Ошибка при получении профиля пользователя:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Get current user profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Ошибка при получении профиля:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, status } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { firstName, lastName, status },
-      { new: true, select: '-password' }
-    );
+    const userId = req.user.id;
+    const updates = req.body;
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
     res.json(user);
   } catch (error) {
-    console.error('Error updating user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Ошибка при обновлении профиля:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
 // Delete user profile
 exports.deleteProfile = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.user.id);
+    const userId = req.user.id;
+    const user = await User.findByIdAndDelete(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'Профиль успешно удален' });
   } catch (error) {
-    console.error('Error deleting user profile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Ошибка при удалении профиля:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
 // Search users
 exports.searchUsers = async (req, res) => {
   try {
-    const query = req.query.query || '';
-    if (!query) {
-      return res.json({ users: [] });
-    }
-
-    const searchCriteria = {
+    const query = req.query.q || '';
+    const users = await User.find({
       $or: [
         { firstName: { $regex: query, $options: 'i' } },
-        { lastName: { $regex: query, $options: 'i' } },
-      ],
-      _id: { $ne: req.user.id },
-    };
-
-    const users = await User.find(searchCriteria)
-      .select('-password')
-      .limit(20);
-    res.json({ users });
+        { lastName: { $regex: query, $options: 'i' } }
+      ]
+    }).select('-password').limit(10);
+    res.json(users);
   } catch (error) {
-    console.error('Error searching users:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Ошибка при поиске пользователей:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
 // Add friend
 exports.addFriend = async (req, res) => {
   try {
-    const { friendId } = req.body;
-    const user = await User.findById(req.user.id);
-    const friend = await User.findById(friendId);
-
-    if (!friend) {
-      return res.status(404).json({ message: 'Friend not found' });
+    const userId = req.user.id;
+    const friendId = req.body.friendId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
-
     if (user.friends.includes(friendId)) {
-      return res.status(400).json({ message: 'User is already your friend' });
+      return res.status(400).json({ message: 'Пользователь уже в друзьях' });
     }
-
     user.friends.push(friendId);
     await user.save();
-
-    res.json({ message: 'Friend added successfully' });
+    res.json({ message: 'Друг добавлен' });
   } catch (error) {
-    console.error('Error adding friend:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Ошибка при добавлении друга:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
