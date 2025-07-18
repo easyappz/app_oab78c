@@ -14,6 +14,8 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -28,9 +30,12 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
-      // Redirect to login page
+      // Redirect to login page only if not already on login or register page
       if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         window.location.href = '/login';
+        // Dispatch custom event to notify about session expiration
+        const event = new CustomEvent('sessionExpired', { detail: { message: 'Сессия истекла. Пожалуйста, войдите снова.' } });
+        window.dispatchEvent(event);
       }
     }
     return Promise.reject(error);
