@@ -1,26 +1,20 @@
 const jwt = require('jsonwebtoken');
 
-// Secret key for JWT (hardcoded since .env is not allowed)
-const JWT_SECRET = 'mysecretkey123';
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
 
-module.exports = (req, res, next) => {
+  if (!token) {
+    return res.status(401).json({ message: 'No token, authorization denied' });
+  }
+
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'Invalid token format' });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey');
     req.user = decoded;
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    res.status(401).json({ message: 'Invalid token' });
+    console.error('Token verification error:', error);
+    res.status(401).json({ message: 'Token is not valid' });
   }
 };
+
+module.exports = authMiddleware;
