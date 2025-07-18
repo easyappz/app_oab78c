@@ -1,113 +1,139 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, TextField, Button, Typography, Paper, Alert, AlertTitle } from '@mui/material';
 import axios from 'axios';
+import { Box, TextField, Button, Typography, Container, Alert, Snackbar } from '@mui/material';
 
 const RegisterPage = () => {
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!username || !email || !password || !confirmPassword) {
-      setError('Все поля должны быть заполнены');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Пароли не совпадают');
-      return;
-    }
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await axios.post('/api/auth/register', { username, email, password });
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/feed');
+      const response = await axios.post('/api/auth/register', { firstName, lastName, email, password });
+      if (response.data.message) {
+        setSuccessMessage('Регистрация успешна! Перенаправляем на страницу входа...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
       }
     } catch (err) {
-      console.error('Ошибка регистрации:', err);
-      setError(err.response?.data?.message || 'Произошла ошибка при регистрации');
+      setError('Ошибка при регистрации. Возможно, email уже используется.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSuccessMessage(null);
+    setError(null);
+  };
+
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#EDEDED' }}>
-      <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom align="center" sx={{ color: '#4682B4', fontWeight: 'bold' }}>
-          Регистрация ВКонтакте
-        </Typography>
-        {error && (
-          <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-            <AlertTitle>Ошибка</AlertTitle>
+    <Container maxWidth="sm" sx={{ mt: 8 }}>
+      {error && (
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
             {error}
           </Alert>
-        )}
-        <form onSubmit={handleSubmit}>
+        </Snackbar>
+      )}
+      {successMessage && (
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            {successMessage}
+          </Alert>
+        </Snackbar>
+      )}
+      <Box
+        sx={{
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="h5" gutterBottom>
+          Регистрация в СоцСети
+        </Typography>
+        <Box component="form" onSubmit={handleRegister} sx={{ width: '100%', mt: 2 }}>
           <TextField
-            label="Имя пользователя"
-            variant="outlined"
             fullWidth
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            label="Имя"
+            name="firstName"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             required
-            sx={{ backgroundColor: '#FFFFFF', borderRadius: 1 }}
           />
           <TextField
-            label="Email или телефон"
-            variant="outlined"
             fullWidth
             margin="normal"
+            label="Фамилия"
+            name="lastName"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Email"
+            name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            sx={{ backgroundColor: '#FFFFFF', borderRadius: 1 }}
           />
           <TextField
-            label="Пароль"
-            type="password"
-            variant="outlined"
             fullWidth
             margin="normal"
+            label="Пароль"
+            name="password"
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            sx={{ backgroundColor: '#FFFFFF', borderRadius: 1 }}
-          />
-          <TextField
-            label="Подтвердите пароль"
-            type="password"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            sx={{ backgroundColor: '#FFFFFF', borderRadius: 1 }}
           />
           <Button
             type="submit"
+            fullWidth
             variant="contained"
             color="primary"
-            fullWidth
-            sx={{ mt: 2, py: 1.5, backgroundColor: '#4682B4', '&:hover': { backgroundColor: '#3A6D9B' } }}
+            size="large"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={loading}
           >
             Зарегистрироваться
           </Button>
-        </form>
-        <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-          <a href="/login" style={{ color: '#4682B4', textDecoration: 'none' }}>Уже есть аккаунт? Войти</a>
-        </Typography>
-      </Paper>
-    </Box>
+          <Typography variant="body2" color="text.secondary" align="center">
+            Уже есть аккаунт? <Button variant="text" onClick={() => navigate('/login')}>Войдите</Button>
+          </Typography>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
