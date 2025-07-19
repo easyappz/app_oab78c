@@ -27,10 +27,14 @@ const ProtectedRoute = ({ children }) => {
     };
 
     checkTokenValidity();
-  }, [showNotification]);
+  }, [location.pathname, showNotification]);
 
   if (isAuthenticated === null) {
-    return <div>Проверка авторизации...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        Проверка авторизации...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
