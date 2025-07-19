@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useNotification } from '../contexts/NotificationContext';
+import { useNotification } from './contexts/NotificationContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
@@ -16,7 +16,7 @@ import UserProfilePage from './pages/UserProfilePage';
 import './App.css';
 
 function App() {
-  const { notification, closeNotification, showNotification } = useNotification();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const handleSessionExpired = (event) => {
