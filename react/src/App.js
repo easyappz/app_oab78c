@@ -18,6 +18,12 @@ import { useNotification } from './contexts/NotificationContext';
 import './App.css';
 
 function App() {
+  // Исправляем проблему с деструктуризацией, перемещая использование хука внутрь компонента,
+  // но после определения контекста. Однако, поскольку NotificationProvider уже обернут вокруг всего приложения,
+  // хук useNotification будет работать корректно только для компонентов внутри провайдера.
+  // В данном случае, из-за двойного использования NotificationProvider, возникает конфликт.
+  // Удаляем лишний провайдер из App.js, так как он уже может быть в index.js или должен быть там.
+
   const { notification, closeNotification, showNotification } = useNotification();
 
   useEffect(() => {
@@ -38,80 +44,72 @@ function App() {
   }, [showNotification]);
 
   return (
-    <NotificationProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/feed" replace />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/feed"
-              element={
-                <ProtectedRoute>
-                  <FeedPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                <ProtectedRoute>
-                  <SearchPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <MessagesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dialogs"
-              element={
-                <ProtectedRoute>
-                  <DialogsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dialog/:id"
-              element={
-                <ProtectedRoute>
-                  <DialogPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/:id"
-              element={
-                <ProtectedRoute>
-                  <UserProfilePage />
-                </ProtectedRoute>
-              }
-            />
-          </Route>
-        </Routes>
-      </Router>
-      <NotificationSnackbar
-        open={notification.open}
-        onClose={closeNotification}
-        message={notification.message}
-        severity={notification.severity}
-      />
-    </NotificationProvider>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/feed" replace />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtectedRoute>
+                <FeedPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <SearchPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dialogs"
+            element={
+              <ProtectedRoute>
+                <DialogsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dialog/:id"
+            element={
+              <ProtectedRoute>
+                <DialogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/:id"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
